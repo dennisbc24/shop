@@ -1,0 +1,52 @@
+name: Deploy shop to EC2
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }} # ej: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: ${{ secrets.EC2_SSH_PORT || 22 }}
+          script: |
+            set -e
+            echo "==> Carpeta shop"
+            # Ruta en EC2: ~/shop  (misma instancia que inventario en ~/inventory)
+            # Si tu inventario está en otro path, ajusta APP_DIR
+            APP_DIR="$HOME/shop"
+            if [ ! -d "$APP_DIR/.git" ]; then
+              echo "Clonando repo primera vez..."
+              mkdir -p "$(dirname $APP_DIR)"
+              git clone git@github.com:dennisbc24/shop.git "$APP_DIR"
+            fi
+            cd "$APP_DIR"
+            echo "==> Git pull"
+            git fetch origin main
+            git reset --hard origin/main
+            echo "==> .env"
+            # Crea .env.local si no existe (no se versiona)
+            if [ ! -f .env.local ]; then
+              cat > .env.local <<EOF
+            NEXT_PUBLIC_API_URL=https://inventario.cocinamejor.store/api/v1/public
+            EOF
+            fi
+            echo "==> Install & Build"
+            npm ci
+            npm run build
+            echo "==> PM2"
+            # Reusa ecosystem.config.js (shop en 3001)
+            if pm2 list | grep -q "shop"; then
+              pm2 reload ecosystem.config.js --only shop --update-env
+            else
+              pm2 start ecosystem.config.js --only shop
+            fi
+            pm2 save
+            echo "==> Deploy OK - $(date) - $(git rev-parse --short HEAD)"
