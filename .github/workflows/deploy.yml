@@ -18,13 +18,22 @@ jobs:
           port: ${{ secrets.EC2_SSH_PORT || 22 }}
           script: |
             set -e
-            echo "==> Carpeta shop (asume git clone manual ya hecho)"
-            APP_DIR="$HOME/shop"
+            echo "==> Detectar carpeta shop (soporta ~/shop y ~/proyects/shop)"
+            echo "HOME=$HOME USER=$(whoami) PWD=$(pwd)"
+            ls -ld "$HOME/shop" "$HOME/proyects/shop" 2>&1 || true
+            APP_DIR="$HOME/proyects/shop"
+            # fallback si lo moviste a ~/shop
+            if [ ! -d "$APP_DIR/.git" ] && [ -d "$HOME/shop/.git" ]; then APP_DIR="$HOME/shop"; fi
+            # Si usas secret APP_DIR, descomenta:
+            # APP_DIR="${{ secrets.APP_DIR }}"
             if [ ! -d "$APP_DIR/.git" ]; then
-              echo "ERROR: ~/shop no existe. Haz primero:"
-              echo "  git clone https://github.com/dennisbc24/shop.git ~/shop"
+              echo "ERROR: no se encontró git en $APP_DIR ni $HOME/proyects/shop"
+              echo "Haz: git clone https://github.com/dennisbc24/shop.git \$HOME/shop"
+              echo "O ajusta APP_DIR en deploy.yml a tu ruta real"
+              ls -la "$HOME" 2>&1 | head -20
               exit 1
             fi
+            echo "Usando APP_DIR=$APP_DIR"
             cd "$APP_DIR"
             echo "==> Forzar remote HTTPS (evita Permission denied publickey)"
             git remote set-url origin https://github.com/dennisbc24/shop.git
