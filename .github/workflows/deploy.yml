@@ -48,6 +48,12 @@ jobs:
             NEXT_PUBLIC_API_URL=https://inventario.cocinamejor.store/api/v1/public
             EOF
             fi
+            echo "==> Node/NPM/PM2 (carga nvm si existe)"
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            # fallback para fnm / volta / n directo
+            export PATH="$HOME/.local/share/fnm:$HOME/.fnm:$HOME/.volta/bin:/usr/local/bin:/usr/bin:$PATH"
+            which node; node -v; which npm; npm -v; which pm2; pm2 -v || npm i -g pm2
             echo "==> Install & Build"
             npm ci
             npm run build
