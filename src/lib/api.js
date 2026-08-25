@@ -9,8 +9,6 @@ const api = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-// Interceptor opcional para token público / de servicio si existe
-// Si el backend exige JWT para /products, guarda un token de solo-lectura en NEXT_PUBLIC_API_TOKEN
 if (typeof window !== "undefined") {
   const token = process.env.NEXT_PUBLIC_API_TOKEN;
   if (token) api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
@@ -21,15 +19,19 @@ if (typeof window !== "undefined") {
 
 export default api;
 
-// Helpers tipados para fuente de verdad
-export const fetchProducts = async () => {
-  const { data } = await api.get("/products");
+export const fetchProducts = async (params = {}) => {
+  const { data } = await api.get("/products", { params });
+  return data;
+};
+
+export const fetchCategories = async () => {
+  const { data } = await api.get("/categories");
   return data;
 };
 
 export const fetchExistenceByProduct = async (productId) => {
   const { data } = await api.get("/existence", { params: { product: productId } });
-  return data; // [{branch_name, amount, product, ...}]
+  return data;
 };
 
 export const fetchInStock = async () => {
@@ -39,10 +41,5 @@ export const fetchInStock = async () => {
 
 export const fetchStockLow = async () => {
   const { data } = await api.get("/existence/stockLow");
-  return data;
-};
-
-export const fetchTopSelling = async () => {
-  const { data } = await api.get("/ventas/topSellingProducts");
   return data;
 };

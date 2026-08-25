@@ -17,7 +17,7 @@ export default function ProductModal({ product, onClose }) {
         <button onClick={onClose} className="absolute top-3 right-3 bg-zinc-100 rounded-full w-8 h-8">×</button>
         <h3 className="font-bold text-lg pr-8">{name}</h3>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={imageUrl || "https://via.placeholder.com/400x300?text=Sin+imagen"} alt={name} className="w-full h-64 object-contain my-4 bg-zinc-50 rounded-xl" onError={(e) => (e.currentTarget.src = "https://via.placeholder.com/400x300?text=Sin+imagen")} />
+        <img src={imageUrl || "/window.svg"} alt={name} className="w-full h-64 object-contain my-4 bg-zinc-50 rounded-xl" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/window.svg"; }} />
         <div className="space-y-2">
           {fields.map(([key, value]) => (
             <div key={key} className="flex justify-between text-sm border-b border-zinc-100 py-1">

@@ -23,7 +23,7 @@ export default function CarritoPage() {
             return (
               <div key={p.id_product} className="flex gap-4 bg-white border rounded-2xl p-4 items-center">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={p.url_image || "https://via.placeholder.com/100?text=Sin+imagen"} alt={p.name} className="w-20 h-20 object-cover rounded-xl bg-zinc-100" />
+                <img src={p.url_image || "/window.svg"} alt={p.name} className="w-20 h-20 object-cover rounded-xl bg-zinc-100 p-2" onError={(e)=>{e.currentTarget.onerror=null; e.currentTarget.src="/window.svg"}} />
                 <div className="flex-1">
                   <h3 className="font-medium line-clamp-1">{p.name}</h3>
                   <p className="text-sm font-bold">S/. {price.toFixed(2)}</p>

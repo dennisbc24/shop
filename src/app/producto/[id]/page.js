@@ -48,13 +48,13 @@ export default function ProductoPage() {
 
   const price = Number(product.list_price || product.cost || 0);
   const totalStock = stockRows.reduce((acc, r) => acc + Number(r.amount || 0), 0);
-  const image = product.url_image || product.img || "https://via.placeholder.com/600x400?text=Sin+imagen";
+  const image = product.url_image || product.img || "/window.svg";
 
   return (
     <div className="grid md:grid-cols-2 gap-8">
       <div className="bg-white rounded-2xl p-4 border border-zinc-200">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={image} alt={product.name} className="w-full h-[400px] object-contain bg-zinc-50 rounded-xl" onError={(e) => (e.currentTarget.src = "https://via.placeholder.com/600x400?text=Sin+imagen")} />
+        <img src={image} alt={product.name} className="w-full h-[400px] object-contain bg-zinc-50 rounded-xl" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/window.svg"; }} />
       </div>
       <div>
         <Link href="/" className="text-sm text-zinc-500 hover:underline">← Volver</Link>

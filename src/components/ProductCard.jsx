@@ -6,7 +6,7 @@ export default function ProductCard({ product, stock }) {
   const { addToCart, removeFromCart, cart } = useCart();
   const inCart = cart.some((p) => p.id_product === product.id_product);
   const price = Number(product.list_price || product.cost || 0);
-  const image = product.url_image || product.img || "/placeholder.png";
+  const image = product.url_image || product.img || "/window.svg";
   const isOutOfStock = stock !== undefined && Number(stock) <= 0;
 
   return (
@@ -17,8 +17,10 @@ export default function ProductCard({ product, stock }) {
           <img
             src={image}
             alt={product.name}
+            loading="lazy"
+            decoding="async"
             className="w-full h-full object-cover group-hover:scale-105 transition"
-            onError={(e) => (e.currentTarget.src = "https://via.placeholder.com/400x300?text=Sin+imagen")}
+            onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/window.svg"; }}
           />
         </div>
         <div className="p-4">
