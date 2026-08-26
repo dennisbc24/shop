@@ -9,13 +9,14 @@ export default function Catalog() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [query, setQuery] = useState("");
-  const [selectedCat, setSelectedCat] = useState("");
+  const [selectedCat, setSelectedCat] = useState(""); // guarda slug, compat con id numérico
   const [categories, setCategories] = useState([]);
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 20;
 
   useEffect(() => {
-    fetchCategories().then(setCategories).catch(() => {});
+    // withCounts=true ya ordenado por position + name, solo activas
+    fetchCategories({ withCounts: true }).then(setCategories).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -24,15 +25,37 @@ export default function Catalog() {
       try {
         setLoading(true);
         setError(null);
+        // Intenta filtro server-side por slug/id; si backend viejo no filtra, hacemos fallback cliente
         const params = selectedCat ? { category: selectedCat } : {};
+        if (query.trim()) params.q = query.trim();
         const [prodRes, stockRes] = await Promise.allSettled([
-          api.get("/products", { params }).then((r) => r.data),
+          api.get("/products", { params: { ...params, limit: 100, offset: 0 } }).then((r) => r.data),
           fetchInStock().catch(() => []),
         ]);
         if (cancelled) return;
         if (prodRes.status === "fulfilled") {
-          const all = Array.isArray(prodRes.value) ? prodRes.value : [];
-          // solo productos con precio sugerido (list_price) - requisito tienda
+          let all = Array.isArray(prodRes.value) ? prodRes.value : [];
+          // Fallback cliente si backend viejo no filtró por category (retorna todos)
+          if (selectedCat && all.length > 0) {
+            const filteredByCat = all.filter((p) => {
+              const slugMatch = p.category_slug && String(p.category_slug).toLowerCase() === String(selectedCat).toLowerCase();
+              const idMatch = String(p.fk_category) === String(selectedCat);
+              const nameMatch = p.category_name && String(p.category_name).toLowerCase() === String(selectedCat).toLowerCase();
+              return slugMatch || idMatch || nameMatch;
+            });
+            // si hay al menos uno que matchea, el backend está filtrando bien -> usar filtrado cliente solo si backend retornó todo
+            // detecta si backend no filtró: si filteredByCat.length ===0 pero all tiene muchos con diferentes categorías, es que no filtró
+            // Heurística: si selectedCat y filteredByCat.length < all.length y filteredByCat.length>0, usa filtered
+            // Si backend viejo retorna 1997 para ollas (no filtrado), filteredByCat será 221 -> usamos ese
+            if (filteredByCat.length > 0 && filteredByCat.length < all.length) {
+              // si backend ya filtró, filteredByCat === all, no cambia; si no filtró, reemplaza
+              const isBackendFiltered = all.every((p) => String(p.fk_category)===String(selectedCat) || String(p.category_slug).toLowerCase()===String(selectedCat).toLowerCase());
+              if (!isBackendFiltered) all = filteredByCat;
+            } else if (filteredByCat.length === 0 && all.length > 0) {
+              // backend no conoce slug y devolvió todo sin filtrar -> filtrado da 0, mantenemos vacío para feedback
+              all = [];
+            }
+          }
           const withPrice = all.filter((p) => {
             const lp = p.list_price;
             return lp !== null && lp !== undefined && String(lp).trim() !== "" && Number(lp) > 0;
@@ -43,7 +66,6 @@ export default function Catalog() {
         }
         if (stockRes.status === "fulfilled" && Array.isArray(stockRes.value)) {
           const map = {};
-          // stockRes: [{product: "Nombre", total_amount: "5", costo:...}]
           stockRes.value.forEach((row) => {
             map[row.product?.toLowerCase().trim()] = Number(row.total_amount);
           });
@@ -55,20 +77,17 @@ export default function Catalog() {
         if (!cancelled) setLoading(false);
       }
     }
-    load();
-    // Poll cada 30s para sincronización casi tiempo real
+    const t = setTimeout(load, query ? 300 : 0);
     const id = setInterval(load, 30000);
     return () => {
       cancelled = true;
+      clearTimeout(t);
       clearInterval(id);
     };
-  }, [selectedCat]);
+  }, [selectedCat, query]);
 
-  const filtered = useMemo(() => {
-    if (!query) return products;
-    const q = query.toLowerCase();
-    return products.filter((p) => p.name?.toLowerCase().includes(q));
-  }, [products, query]);
+  // filtro cliente ya no necesario si q va al backend, pero mantenemos para paginación
+  const filtered = products;
 
   useEffect(() => setPage(1), [query, products, selectedCat]);
 
@@ -84,7 +103,7 @@ export default function Catalog() {
       <div className="py-12 text-center">
         <p className="text-red-600 font-medium">No se pudo cargar el catálogo: {error}</p>
         <p className="text-sm text-zinc-500 mt-2">
-          Verifica que el backend permita lectura pública en /api/v1/products (ver docs/CORS). Si exige JWT, define NEXT_PUBLIC_API_TOKEN.
+          Verifica que el backend permita lectura pública en /api/v1/public/products
         </p>
         <p className="text-xs text-zinc-400 mt-2">BaseURL: {api.defaults.baseURL}</p>
       </div>
@@ -97,19 +116,26 @@ export default function Catalog() {
           <button onClick={() => setSelectedCat("")} className={`px-4 py-1.5 rounded-full text-sm border ${selectedCat === "" ? "bg-black text-white border-black" : "bg-white border-zinc-300"}`}>
             Todas
           </button>
-          {categories.map((c) => (
-            <button
-              key={c.id_category}
-              onClick={() => setSelectedCat(String(c.id_category))}
-              className={`px-4 py-1.5 rounded-full text-sm border ${String(selectedCat) === String(c.id_category) ? "bg-black text-white border-black" : "bg-white border-zinc-300"}`}
-            >
-              {c.name}
-            </button>
-          ))}
+          {categories.map((c) => {
+            // c.slug es estable, c.id_category compat
+            const val = c.slug || String(c.id_category);
+            const count = c.product_count ?? "";
+            const active = String(selectedCat) === String(val) || String(selectedCat) === String(c.id_category);
+            return (
+              <button
+                key={c.id_category}
+                onClick={() => setSelectedCat(val)}
+                className={`px-4 py-1.5 rounded-full text-sm border ${active ? "bg-black text-white border-black" : "bg-white border-zinc-300"}`}
+                title={c.description || c.name}
+              >
+                {c.name} {count !== "" ? `(${count})` : ""}
+              </button>
+            );
+          })}
         </div>
         <div className="flex flex-col sm:flex-row gap-3 justify-between items-center">
           <p className="text-sm text-zinc-600">
-            {filtered.length} productos{totalPages > 1 ? ` — pág ${page}/${totalPages}` : ""}
+            {filtered.length} productos{totalPages > 1 ? ` — pág ${page}/${totalPages}` : ""} {selectedCat ? ` en "${categories.find((c)=> (c.slug||String(c.id_category))===selectedCat)?.name || selectedCat}"` : ""}
           </p>
           <input
             value={query}
@@ -120,7 +146,7 @@ export default function Catalog() {
         </div>
       </div>
       {filtered.length === 0 ? (
-        <p className="text-center text-zinc-500 py-12">Sin resultados</p>
+        <p className="text-center text-zinc-500 py-12">Sin resultados {selectedCat ? "en esta categoría" : ""}</p>
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">

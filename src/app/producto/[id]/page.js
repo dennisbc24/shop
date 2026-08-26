@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import api, { fetchExistenceByProduct } from "@/lib/api";
+import api, { fetchExistenceByProduct, fetchProductById } from "@/lib/api";
 import { useCart } from "@/hooks/useCart";
 
 export default function ProductoPage() {
@@ -18,9 +18,9 @@ export default function ProductoPage() {
     async function load() {
       try {
         setLoading(true);
-        const { data } = await api.get("/products");
-        const found = (Array.isArray(data) ? data : []).find((p) => String(p.id_product) === String(id));
-        if (!found) throw new Error("Producto no encontrado");
+        // Usa endpoint directo /products/:id (con category_slug) - evita traer catálogo completo
+        const found = await fetchProductById(id);
+        if (!found || !found.id_product) throw new Error("Producto no encontrado");
         setProduct(found);
         try {
           const stock = await fetchExistenceByProduct(found.id_product);
@@ -29,7 +29,17 @@ export default function ProductoPage() {
           setStockRows([]);
         }
       } catch (e) {
-        setError(e.message);
+        // fallback: si /products/:id falla (404), intenta buscar en lista
+        try {
+          const { data } = await api.get("/products", { params: { limit: 100 } });
+          const found = (Array.isArray(data) ? data : []).find((p) => String(p.id_product) === String(id));
+          if (found) {
+            setProduct(found);
+            setError(null);
+            return;
+          }
+        } catch {}
+        setError(e?.response?.data?.message || e.message);
       } finally {
         setLoading(false);
       }
@@ -64,7 +74,7 @@ export default function ProductoPage() {
           {totalStock === 0 ? "Sin stock" : `Stock total: ${totalStock} unidades`}
         </p>
         <div className="mt-4 space-y-2 text-sm text-zinc-700">
-          <p><strong>Costo:</strong> S/. {Number(product.cost || 0).toFixed(2)}</p>
+          {product.category_name && <p><strong>Categoría:</strong> {product.category_name} {product.category_slug ? `(${product.category_slug})` : ""}</p>}
           {product.lowest_price && <p><strong>Precio mínimo:</strong> S/. {Number(product.lowest_price).toFixed(2)}</p>}
           {product.fk_supplier && <p><strong>Proveedor ID:</strong> {product.fk_supplier}</p>}
         </div>
