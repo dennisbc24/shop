@@ -52,7 +52,7 @@ jobs:
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
             export PATH="$HOME/.local/share/fnm:$HOME/.fnm:$HOME/.volta/bin:/usr/local/bin:/usr/bin:$PATH"
-            which node; node -v
+            which node || true; node -v
             # eslint 9 exige >=18.18 o 20.9 - tu EC2 tiene 18.12.1 -> auto upgrade a 20 LTS
             if node -v | grep -q "v18.12"; then
               echo "Node 18.12 obsoleto - instalando 20 LTS..."
@@ -60,7 +60,7 @@ jobs:
               nvm alias default 20
               nvm use 20
             fi
-            node -v; which npm; npm -v; which pm2; pm2 -v || npm i -g pm2
+            node -v; which npm || true; npm -v; which pm2 || true; pm2 -v || npm i -g pm2
             echo "==> Install & Build (t3.nano 512MB -> swap + low mem)"
             export NODE_OPTIONS="--max-old-space-size=384"
             npm ci --no-audit --no-fund
