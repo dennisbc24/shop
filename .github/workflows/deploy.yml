@@ -61,8 +61,9 @@ jobs:
               nvm use 20
             fi
             node -v; which npm; npm -v; which pm2; pm2 -v || npm i -g pm2
-            echo "==> Install & Build"
-            npm ci
+            echo "==> Install & Build (t3.nano 512MB -> swap + low mem)"
+            export NODE_OPTIONS="--max-old-space-size=384"
+            npm ci --no-audit --no-fund
             npm run build
             echo "==> PM2"
             if pm2 list | grep -q "shop"; then
