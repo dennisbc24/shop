@@ -1,13 +1,88 @@
+"use client";
+import { useState } from "react";
 import Catalog from "@/components/Catalog";
+import Hero from "@/components/layout/Hero";
+import Benefits from "@/components/layout/Benefits";
+
+const banners = [
+  { cls: "orange-banner", eyebrow: "HASTA 30% OFF", title: "En pequeños electrodomésticos", link: "Ver ofertas", icon: "☕" },
+  { cls: "light-banner", eyebrow: "NUEVOS PRODUCTOS", title: "Descubre lo último para tu cocina", link: "Ver novedades", icon: "🍲" },
+  { cls: "dark-banner", eyebrow: "PAGOS SEGUROS", title: "Tu compra está 100% protegida", link: "", icon: "🔒" },
+];
 
 export default function Home() {
+  const [search, setSearch] = useState("");
+  // Header onSearch se maneja via prop global - usamos estado local y pasamos a Catalog via key
+  // Para simplicidad, exponemos setSearch al Header vía evento custom
+  if (typeof window !== "undefined") {
+    window.__shopSetSearch = setSearch;
+  }
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">Catálogo</h1>
-        <p className="text-sm text-zinc-600">Productos en tiempo real desde tu inventario. Precios y stock sincronizados.</p>
-      </div>
-      <Catalog />
-    </div>
+    <>
+      <Hero />
+      <Benefits />
+
+      <section className="section" id="categorias">
+        <div className="container">
+          <div className="section-header">
+            <h2>Explora nuestras categorías</h2>
+            <a href="#catalogo">Ver todas →</a>
+          </div>
+          <div className="categories-grid">
+            {[
+              ["🍳", "Electrodomésticos"],
+              ["🍴", "Menaje"],
+              ["🍲", "Cocina"],
+              ["🧁", "Repostería"],
+              ["☕", "Pequeños electrodomésticos"],
+              ["🫖", "Cafetería"],
+              ["🧴", "Limpieza"],
+              ["%", "Ofertas", true],
+            ].map(([icon, label, offer]) => (
+              <a key={label} href="#catalogo" className="category-card">
+                <div className={`category-image ${offer ? "offer-category" : ""}`}>{icon}</div>
+                <span>{label}</span>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="section products-section" id="catalogo">
+        <div className="container">
+          <div className="section-header">
+            <h2>Productos destacados</h2>
+            <a href="#catalogo">Ver todos →</a>
+          </div>
+          <Catalog externalSearch={search} />
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="container banners-grid">
+          {banners.map((b) => (
+            <article key={b.title} className={`promo-banner ${b.cls}`}>
+              <div>
+                <span>{b.eyebrow}</span>
+                <h3>{b.title}</h3>
+                {b.link && <a href="#catalogo">{b.link}</a>}
+              </div>
+              <div className="promo-product">{b.icon}</div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="brands-section">
+        <div className="container">
+          <div className="section-header">
+            <h2>Marcas que trabajan con nosotros</h2>
+          </div>
+          <div className="brands">
+            <span>Oster</span><span>PHILIPS</span><span>imaco</span><span>RECORD</span><span>TRAMONTINA</span><span>Moulinex</span><span>BOSCH</span><span>BLACK+DECKER</span>
+          </div>
+        </div>
+      </section>
+    </>
   );
 }

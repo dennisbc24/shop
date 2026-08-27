@@ -3,20 +3,24 @@ import { useEffect, useState, useMemo } from "react";
 import api, { fetchInStock, fetchCategories } from "@/lib/api";
 import ProductCard from "./ProductCard";
 
-export default function Catalog() {
+export default function Catalog({ externalSearch = "" }) {
   const [products, setProducts] = useState([]);
   const [stockMap, setStockMap] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [query, setQuery] = useState("");
-  const [selectedCat, setSelectedCat] = useState(""); // guarda slug, compat con id numérico
+  const [selectedCat, setSelectedCat] = useState("");
   const [categories, setCategories] = useState([]);
   const [page, setPage] = useState(1);
-  const PAGE_SIZE = 20;
+  const PAGE_SIZE = 10;
+
+  // sincroniza búsqueda del Header
+  useEffect(() => {
+    if (externalSearch !== undefined) setQuery(externalSearch);
+  }, [externalSearch]);
 
   useEffect(() => {
-    // withCounts=true ya ordenado por position + name, solo activas
-    fetchCategories({ withCounts: true }).then(setCategories).catch(() => {});
+    fetchCategories().then(setCategories).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -86,7 +90,6 @@ export default function Catalog() {
     };
   }, [selectedCat, query]);
 
-  // filtro cliente ya no necesario si q va al backend, pero mantenemos para paginación
   const filtered = products;
 
   useEffect(() => setPage(1), [query, products, selectedCat]);
@@ -149,7 +152,7 @@ export default function Catalog() {
         <p className="text-center text-zinc-500 py-12">Sin resultados {selectedCat ? "en esta categoría" : ""}</p>
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="products-grid">
             {paginated.map((p) => {
               const stock = stockMap[p.name?.toLowerCase().trim()];
               return <ProductCard key={p.id_product} product={p} stock={stock} />;
