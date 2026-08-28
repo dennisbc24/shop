@@ -20,7 +20,7 @@ export default function Catalog({ externalSearch = "" }) {
   }, [externalSearch]);
 
   useEffect(() => {
-    fetchCategories().then(setCategories).catch(() => {});
+    fetchCategories({ withCounts: true, online: true }).then(setCategories).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -29,8 +29,8 @@ export default function Catalog({ externalSearch = "" }) {
       try {
         setLoading(true);
         setError(null);
-        // Intenta filtro server-side por slug/id; si backend viejo no filtra, hacemos fallback cliente
-        const params = selectedCat ? { category: selectedCat } : {};
+        // Solo productos habilitados para online
+        const params = { online: true, ...(selectedCat ? { category: selectedCat } : {}) };
         if (query.trim()) params.q = query.trim();
         const [prodRes, stockRes] = await Promise.allSettled([
           api.get("/products", { params: { ...params, limit: 100, offset: 0 } }).then((r) => r.data),
@@ -60,7 +60,11 @@ export default function Catalog({ externalSearch = "" }) {
               all = [];
             }
           }
-          const withPrice = all.filter((p) => {
+          // fallback cliente para is_online si backend viejo no filtra
+          const withOnline = all.filter((p) => p.is_online === true || p.is_online === 1 || p.is_online === 't');
+          // si backend ya filtró, withOnline === all filtrado; si no, aplica filtro cliente
+          const filteredOnline = withOnline.length > 0 || all.some(p=> p.is_online !== undefined) ? withOnline : all;
+          const withPrice = filteredOnline.filter((p) => {
             const lp = p.list_price;
             return lp !== null && lp !== undefined && String(lp).trim() !== "" && Number(lp) > 0;
           });

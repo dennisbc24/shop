@@ -30,9 +30,12 @@ export const fetchProductById = async (id) => {
 };
 
 export const fetchCategories = async (opts = {}) => {
-  const { withCounts = true } = opts;
+  const { withCounts = true, online = true } = opts;
   try {
-    const { data } = await api.get("/categories", { params: withCounts ? { withCounts: true } : {} });
+    const params = {};
+    if (withCounts) params.withCounts = true;
+    if (online) params.online = true;
+    const { data } = await api.get("/categories", { params });
     return data;
   } catch (e) {
     // fallback: si /public/categories da 401 (backend viejo sin deploy), deriva categorías de /products
