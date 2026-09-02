@@ -79,6 +79,29 @@ export default function ProductoPage() {
           {product.fk_supplier && <p><strong>Proveedor ID:</strong> {product.fk_supplier}</p>}
         </div>
 
+        {(() => {
+          let attrs = product.attributes;
+          if (typeof attrs === 'string') { try { attrs = JSON.parse(attrs); } catch { attrs = {}; } }
+          if (!attrs || typeof attrs !== 'object' || !Object.keys(attrs).length) return null;
+          return (
+            <div className="mt-6">
+              <h3 className="font-semibold mb-2">Especificaciones</h3>
+              <div className="border rounded-xl overflow-hidden">
+                <table className="w-full text-sm">
+                  <tbody>
+                    {Object.entries(attrs).map(([k, v]) => (
+                      <tr key={k} className="border-t">
+                        <th className="text-left p-2 bg-zinc-50 font-medium w-1/3">{k}</th>
+                        <td className="p-2">{String(v)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          );
+        })()}
+
         <div className="mt-6 flex gap-3">
           <button
             disabled={totalStock === 0}
