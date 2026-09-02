@@ -1,11 +1,15 @@
 "use client";
 import Link from "next/link";
+import { useState } from "react";
 import { useCart } from "@/hooks/useCart";
 
 export default function Header() {
   const { count, total } = useCart();
-  const onSearch = (v) => {
-    if (typeof window !== "undefined" && window.__shopSetSearch) window.__shopSetSearch(v);
+  const [input, setInput] = useState("");
+  const doSearch = () => {
+    if (typeof window !== "undefined" && window.__shopSetSearch) window.__shopSetSearch(input);
+    // scroll a resultados más arriba y visible
+    setTimeout(() => document.getElementById("catalogo")?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
   };
   return (
     <header className="header">
@@ -16,8 +20,15 @@ export default function Header() {
         </Link>
 
         <div className="search-box">
-          <input type="search" placeholder="¿Qué producto estás buscando?" aria-label="Buscar productos" onChange={(e) => onSearch?.(e.target.value)} />
-          <button aria-label="Buscar">🔍</button>
+          <input
+            type="search"
+            placeholder="¿Qué producto estás buscando?"
+            aria-label="Buscar productos"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); doSearch(); } }}
+          />
+          <button aria-label="Buscar" onClick={doSearch}>🔍</button>
         </div>
 
         <div className="header-actions">

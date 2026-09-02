@@ -14,9 +14,14 @@ export default function Catalog({ externalSearch = "" }) {
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 10;
 
-  // sincroniza búsqueda del Header
+  // sincroniza búsqueda del Header + scroll visible arriba
   useEffect(() => {
-    if (externalSearch !== undefined) setQuery(externalSearch);
+    if (externalSearch !== undefined) {
+      setQuery(externalSearch);
+      if (externalSearch.trim()) {
+        setTimeout(() => document.getElementById("catalogo")?.scrollIntoView({ behavior: "smooth", block: "start" }), 150);
+      }
+    }
   }, [externalSearch]);
 
   useEffect(() => {

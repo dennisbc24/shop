@@ -11,14 +11,14 @@ export default function ProductoPage() {
   const [stockRows, setStockRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [qty, setQty] = useState(1);
   const { addToCart, cart, removeFromCart } = useCart();
-  const inCart = cart.some((p) => p.id_product === Number(id) || p.id_product === id);
+  const inCart = cart.some((p) => String(p.id_product) === String(id));
 
   useEffect(() => {
     async function load() {
       try {
         setLoading(true);
-        // Usa endpoint directo /products/:id (con category_slug) - evita traer catálogo completo
         const found = await fetchProductById(id);
         if (!found || !found.id_product) throw new Error("Producto no encontrado");
         setProduct(found);
@@ -29,7 +29,6 @@ export default function ProductoPage() {
           setStockRows([]);
         }
       } catch (e) {
-        // fallback: si /products/:id falla (404), intenta buscar en lista
         try {
           const { data } = await api.get("/products", { params: { limit: 100 } });
           const found = (Array.isArray(data) ? data : []).find((p) => String(p.id_product) === String(id));
@@ -59,25 +58,28 @@ export default function ProductoPage() {
   const price = Number(product.list_price || product.cost || 0);
   const totalStock = stockRows.reduce((acc, r) => acc + Number(r.amount || 0), 0);
   const image = product.url_image || product.img || "/window.svg";
+  const isAvailable = totalStock > 0;
+  const overStock = qty > totalStock;
 
   return (
     <div className="grid md:grid-cols-2 gap-8">
-      <div className="bg-white rounded-2xl p-4 border border-zinc-200">
+      <div className="bg-white rounded-2xl p-4 border border-zinc-200 flex items-center justify-center min-h-[420px]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={image} alt={product.name} className="w-full h-[400px] object-contain bg-zinc-50 rounded-xl" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/window.svg"; }} />
+        <img
+          src={image}
+          alt={product.name}
+          className="w-full h-auto max-h-[380px] object-contain bg-zinc-50 rounded-xl transition-transform duration-300 hover:scale-[1.6] cursor-zoom-in"
+          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/window.svg"; }}
+        />
       </div>
-      <div>
-        <Link href="/" className="text-sm text-zinc-500 hover:underline">← Volver</Link>
-        <h1 className="text-2xl font-bold mt-2">{product.name}</h1>
-        <p className="text-2xl font-bold text-orange-600 mt-2">S/. {price.toFixed(2)}</p>
-        <p className={`text-sm mt-2 ${totalStock === 0 ? "text-red-600" : totalStock < 5 ? "text-amber-600" : "text-green-600"}`}>
-          {totalStock === 0 ? "Sin stock" : `Stock total: ${totalStock} unidades`}
-        </p>
-        <div className="mt-4 space-y-2 text-sm text-zinc-700">
-          {product.category_name && <p><strong>Categoría:</strong> {product.category_name} {product.category_slug ? `(${product.category_slug})` : ""}</p>}
-          {product.lowest_price && <p><strong>Precio mínimo:</strong> S/. {Number(product.lowest_price).toFixed(2)}</p>}
-          {product.fk_supplier && <p><strong>Proveedor ID:</strong> {product.fk_supplier}</p>}
+      <div className="flex flex-col">
+        <Link href="/" className="text-sm text-zinc-500 hover:underline">← Volver al catálogo</Link>
+        <h1 className="text-[26px] font-extrabold leading-tight tracking-tight mt-3">{product.name}</h1>
+        <div className="flex items-baseline gap-3 mt-3">
+          <p className="text-3xl font-extrabold" style={{color:"var(--primary)"}}>S/. {price.toFixed(2)}</p>
+          <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${isAvailable ? "bg-[#e6f4ea] text-[var(--green)]" : "bg-red-50 text-red-600"}`}>{isAvailable ? "● Disponible" : "● Agotado"}</span>
         </div>
+        {product.category_name && <span className="mt-3 inline-flex w-fit bg-zinc-100 border border-[var(--border)] text-xs font-semibold px-3 py-1 rounded-full">{product.category_name}</span>}
 
         {(() => {
           let attrs = product.attributes;
@@ -85,59 +87,40 @@ export default function ProductoPage() {
           if (!attrs || typeof attrs !== 'object' || !Object.keys(attrs).length) return null;
           return (
             <div className="mt-6">
-              <h3 className="font-semibold mb-2">Especificaciones</h3>
-              <div className="border rounded-xl overflow-hidden">
-                <table className="w-full text-sm">
-                  <tbody>
-                    {Object.entries(attrs).map(([k, v]) => (
-                      <tr key={k} className="border-t">
-                        <th className="text-left p-2 bg-zinc-50 font-medium w-1/3">{k}</th>
-                        <td className="p-2">{String(v)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <h3 className="text-sm font-bold tracking-wide uppercase text-zinc-500 mb-3">Especificaciones</h3>
+              <div className="bg-white border border-[var(--border)] rounded-xl overflow-hidden divide-y divide-[var(--border)]">
+                {Object.entries(attrs).map(([k, v]) => (
+                  <div key={k} className="flex justify-between items-center px-4 py-3">
+                    <span className="text-sm font-bold text-zinc-500 capitalize">{k}</span>
+                    <span className="text-sm font-semibold text-[var(--text)] capitalize">{String(v)}</span>
+                  </div>
+                ))}
               </div>
             </div>
           );
         })()}
 
-        <div className="mt-6 flex gap-3">
-          <button
-            disabled={totalStock === 0}
-            onClick={() => (inCart ? removeFromCart(product) : addToCart(product))}
-            className={`flex-1 rounded-full py-3 font-medium ${totalStock === 0 ? "bg-zinc-200 text-zinc-500" : inCart ? "bg-red-600 text-white" : "bg-black text-white hover:bg-zinc-800"}`}
-          >
-            {totalStock === 0 ? "Agotado" : inCart ? "Quitar del carrito" : "Agregar al carrito"}
-          </button>
-          <Link href="/carrito" className="rounded-full border px-6 py-3 text-sm font-medium bg-white hover:bg-zinc-50">Ver carrito</Link>
+        <div className="mt-7 flex flex-wrap items-center gap-3">
+          <div className="flex items-center bg-white border border-[var(--border)] rounded-full h-11 overflow-hidden">
+            <button onClick={() => setQty((q) => Math.max(1, q - 1))} className="w-11 h-11 flex items-center justify-center hover:bg-zinc-50 text-lg" aria-label="Menos">−</button>
+            <input type="number" min={1} max={totalStock || 999} value={qty} onChange={(e) => setQty(Math.max(1, Number(e.target.value) || 1))} className="w-12 h-11 text-center border-x border-[var(--border)] outline-none text-sm font-bold" />
+            <button onClick={() => setQty((q) => q + 1)} disabled={isAvailable && qty >= totalStock} className="w-11 h-11 flex items-center justify-center hover:bg-zinc-50 text-lg disabled:opacity-30 disabled:cursor-not-allowed" aria-label="Más">+</button>
+          </div>
+          <span className="text-xs text-zinc-500">Cant.</span>
+          {overStock && <span className="text-xs font-bold text-red-600 bg-red-50 border border-red-200 px-2.5 py-1 rounded-full">Sobrepasa stock ({totalStock})</span>}
         </div>
 
-        {stockRows.length > 0 && (
-          <div className="mt-8">
-            <h3 className="font-semibold mb-2">Disponibilidad por sucursal (tiempo real via /existence?product=)</h3>
-            <div className="border rounded-xl overflow-hidden">
-              <table className="w-full text-sm">
-                <thead className="bg-zinc-100">
-                  <tr>
-                    <th className="text-left p-2">Sucursal</th>
-                    <th className="text-left p-2">Cantidad</th>
-                    <th className="text-left p-2">Actualizado</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {stockRows.map((r) => (
-                    <tr key={r.id_existence} className="border-t">
-                      <td className="p-2">{r.branch_name}</td>
-                      <td className="p-2">{r.amount}</td>
-                      <td className="p-2 text-xs text-zinc-500">{r.updated ? new Date(r.updated).toLocaleString("es-PE") : "-"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
+        <div className="mt-6 flex gap-3">
+          <button
+            disabled={!isAvailable || overStock}
+            onClick={() => (inCart ? removeFromCart(product) : addToCart(product, qty))}
+            className={`flex-1 max-w-[280px] py-3.5 rounded-xl font-bold text-sm transition ${!isAvailable || overStock ? "bg-zinc-200 text-zinc-500 cursor-not-allowed" : inCart ? "bg-red-600 text-white hover:bg-red-700" : "text-white hover:opacity-90"}`}
+            style={!isAvailable || overStock ? {} : inCart ? {} : {background:"var(--primary)"}}
+          >
+            {!isAvailable ? "Agotado" : overStock ? "Sobrepasa stock" : inCart ? "Quitar del carrito" : "Agregar al carrito  🛒"}
+          </button>
+          <Link href="/carrito" className="px-6 py-3.5 rounded-xl border border-[var(--border)] text-sm font-bold bg-white hover:bg-zinc-50">Ver carrito</Link>
+        </div>
       </div>
     </div>
   );

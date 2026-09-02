@@ -76,10 +76,15 @@ export default function Home() {
       <section className="brands-section">
         <div className="container">
           <div className="section-header">
-            <h2>Marcas que trabajan con nosotros</h2>
+            <h2>Las mejores marcas aquí</h2>
           </div>
           <div className="brands">
-            <span>Oster</span><span>PHILIPS</span><span>imaco</span><span>RECORD</span><span>TRAMONTINA</span><span>Moulinex</span><span>BOSCH</span><span>BLACK+DECKER</span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSVXWX6f4VjuFhJYkuWZ1VptBy5r-wKr844_Gx8HLEQI6XQZRhInzRvhKVv&s=10" alt="Marca 1" />
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRMCMU4gSKBusJCt7zV_-z7xEsI79aAde7dCoucw-7M-o2oBqUJBU6W-vE&s=10" alt="Marca 2" />
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRevS2c2Uz3hK6bHQVdwLdSBnxp-P5tSixNBbR33EILMw&s=10" alt="Marca 3" />
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR2I2vLCkw5Bk1YhnFCDmKWVWu_XODbFz1tDdBsaCU7Y5JMxf5Av8xQBpc&s=10" alt="Marca 4" />
+            <img src="https://selectopa.com/cdn/shop/collections/SITIO_WEB_5_SELECTO_8f3b70e4-e81f-4a30-a9a4-48370ab8fc9a.png?v=1769020353" alt="Marca 5" />
           </div>
         </div>
       </section>
