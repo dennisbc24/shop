@@ -15,7 +15,7 @@ export function buildWhatsAppUrl(message) {
 
 export function buildProductMessage({ product, price, quantity }) {
   return [
-    `Hola, estoy interesado en "${product.name}" (${formatPrice(price)}).`,
+    `Hola, estoy interesado en "${product.name.trim()}" (${formatPrice(price)}).`,
     `Cantidad: ${quantity}.`,
     `${SHOP_URL}/producto/${product.id_product}`,
     "",
@@ -29,14 +29,14 @@ export function buildQuoteMessage({ cart, total, customer }) {
     "",
     ...cart.map((product) => {
       const unitPrice = Number(product.list_price || product.cost || 0);
-      return `• ${product.quantity}x ${product.name} — ${formatPrice(unitPrice * product.quantity)}`;
+      return `• ${product.quantity}x ${product.name.trim()} — ${formatPrice(unitPrice * product.quantity)}`;
     }),
     "",
     `Total referencial (sin envío): ${formatPrice(total)}`,
     "",
-    `Nombre: ${customer.name}`,
-    `Teléfono: ${customer.phone}`,
-    `Dirección: ${customer.address}`,
+    `Nombre: ${customer.name.trim()}`,
+    `Teléfono: ${customer.phone.trim()}`,
+    `Dirección: ${customer.address.trim()}`,
   ];
 
   if (customer.reference?.trim()) lines.push(`Referencia: ${customer.reference.trim()}`);
