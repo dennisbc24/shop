@@ -10,7 +10,7 @@ export default function CarritoPage() {
     return (
       <div className="container py-12 text-center">
         <h1 className="text-xl font-bold">Tu carrito está vacío</h1>
-        <Link href="/" className="mt-4 inline-block bg-black text-white px-6 py-2 rounded-full">Ir al catálogo</Link>
+        <Link href="/" className="mt-4 inline-block bg-[var(--primary)] text-white px-6 py-2 rounded-full hover:bg-[var(--primary-dark)]">Ir al catálogo</Link>
       </div>
     );
 
@@ -50,7 +50,7 @@ export default function CarritoPage() {
             <span>Envío</span><span className="text-zinc-500">Se cotiza por WhatsApp</span>
           </div>
           <div className="flex justify-between font-bold text-lg border-t pt-4">Total referencial<span>S/. {total.toFixed(2)}</span></div>
-          <Link href="/checkout" className="mt-6 block text-center bg-black text-white py-3 rounded-full hover:bg-zinc-800">Solicitar cotización</Link>
+          <Link href="/checkout" className="mt-6 block text-center bg-[var(--primary)] text-white py-3 rounded-full hover:bg-[var(--primary-dark)]">Solicitar cotización</Link>
           <p className="text-xs text-zinc-500 mt-2 text-center">{PAYMENT_METHODS_TEXT}</p>
         </div>
       </div>

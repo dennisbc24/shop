@@ -3,7 +3,6 @@ import Hero from "@/components/layout/Hero";
 import Benefits from "@/components/layout/Benefits";
 
 const banners = [
-  { cls: "orange-banner", eyebrow: "HASTA 30% OFF", title: "En pequeños electrodomésticos", link: "Ver ofertas", icon: "☕" },
   { cls: "light-banner", eyebrow: "NUEVOS PRODUCTOS", title: "Descubre lo último para tu cocina", link: "Ver novedades", icon: "🍲" },
   { cls: "dark-banner", eyebrow: "PAGOS SEGUROS", title: "Tu compra está 100% protegida", link: "", icon: "🔒" },
 ];

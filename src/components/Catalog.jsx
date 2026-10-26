@@ -134,7 +134,7 @@ export default function Catalog() {
     <div>
       <div className="flex flex-col gap-3 mb-6">
         <div className="flex flex-wrap gap-2">
-          <button onClick={() => changeCategory("")} className={`px-4 py-1.5 rounded-full text-sm border ${selectedCat === "" ? "bg-black text-white border-black" : "bg-white border-zinc-300"}`}>
+          <button onClick={() => changeCategory("")} className={`px-4 py-1.5 rounded-full text-sm border ${selectedCat === "" ? "bg-[var(--primary)] text-white border-[var(--primary)]" : "bg-white border-zinc-300"}`}>
             Todas
           </button>
           {categories.map((c) => {
@@ -146,7 +146,7 @@ export default function Catalog() {
               <button
                 key={c.id_category}
                 onClick={() => changeCategory(val)}
-                className={`px-4 py-1.5 rounded-full text-sm border ${active ? "bg-black text-white border-black" : "bg-white border-zinc-300"}`}
+                className={`px-4 py-1.5 rounded-full text-sm border ${active ? "bg-[var(--primary)] text-white border-[var(--primary)]" : "bg-white border-zinc-300"}`}
                 title={c.description || c.name}
               >
                 {c.name} {count !== "" ? `(${count})` : ""}
@@ -162,7 +162,7 @@ export default function Catalog() {
             value={query}
             onChange={(e) => changeQuery(e.target.value)}
             placeholder="Buscar producto..."
-            className="border border-zinc-300 rounded-full px-4 py-2 w-full sm:w-64 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+            className="border border-zinc-300 rounded-full px-4 py-2 w-full sm:w-64 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
           />
         </div>
       </div>

@@ -56,7 +56,7 @@ export default function ProductImageZoom({ src, alt }) {
 
   return (
     <div
-      className="relative overflow-hidden bg-white rounded-2xl p-4 border border-zinc-200 flex items-center justify-center min-h-[420px] cursor-zoom-in focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
+      className="relative overflow-hidden bg-white rounded-2xl p-4 border border-zinc-200 flex items-center justify-center min-h-[420px] cursor-zoom-in focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
       style={{ touchAction: "manipulation" }}
       role="button"
       tabIndex={0}

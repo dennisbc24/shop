@@ -57,7 +57,7 @@ export default function CheckoutPage() {
     return (
       <div className="py-12 text-center">
         <h1 className="text-xl font-bold">Tu carrito está vacío</h1>
-        <Link href="/" className="mt-4 inline-block bg-black text-white px-6 py-2 rounded-full">Ir al catálogo</Link>
+        <Link href="/" className="mt-4 inline-block bg-[var(--primary)] text-white px-6 py-2 rounded-full hover:bg-[var(--primary-dark)]">Ir al catálogo</Link>
       </div>
     );
 
@@ -145,7 +145,7 @@ export default function CheckoutPage() {
           </div>
         </div>
 
-        <div className="rounded-xl bg-[#f0fdf4] border border-[#bbf7d0] p-3 text-xs text-zinc-700">
+        <div className="rounded-xl bg-[var(--primary-soft)] border border-[#cfe3e6] p-3 text-xs text-zinc-700">
           {PAYMENT_METHODS_TEXT}
         </div>
 

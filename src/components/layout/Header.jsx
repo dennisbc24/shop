@@ -17,8 +17,12 @@ export default function Header() {
     <header className="header">
       <div className="container header-main">
         <Link href="/" className="logo">
-          <span className="logo-icon">👨‍🍳</span>
-          <span>Cocina<span>Mejor</span></span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo-mark.png" alt="" className="logo-image" width="54" height="54" />
+          <span className="logo-text">
+            <span className="logo-name">Cocina<span>Mejor</span></span>
+            <span className="logo-tagline">Tienda en línea de hogar y cocina</span>
+          </span>
         </Link>
 
         <div className="search-box">

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { WHATSAPP_NUMBER } from "@/lib/whatsapp";
 
 export default function Footer() {
@@ -5,7 +6,10 @@ export default function Footer() {
     <footer className="footer">
       <div className="container footer-grid">
         <div className="footer-column">
-          <a href="#" className="logo footer-logo">👨‍🍳 Cocina<span>Mejor</span></a>
+          <Link href="/" className="logo footer-logo">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo-cocinamejor.png" alt="CocinaMejor - Tienda en línea de hogar y cocina" width="420" height="364" className="footer-logo-img" />
+          </Link>
           <p>Equipamos tu cocina con los mejores productos de calidad al mejor precio.</p>
           <div className="socials"><a href="#">f</a><a href="#">◎</a><a href="#">♪</a><a href="#">▶</a></div>
         </div>
