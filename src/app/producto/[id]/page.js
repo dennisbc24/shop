@@ -4,6 +4,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import api, { fetchExistenceByProduct, fetchProductById } from "@/lib/api";
 import { useCart } from "@/hooks/useCart";
+import ProductImageZoom from "@/components/ProductImageZoom";
 
 export default function ProductoPage() {
   const { id } = useParams();
@@ -63,15 +64,7 @@ export default function ProductoPage() {
 
   return (
     <div className="grid md:grid-cols-2 gap-8">
-      <div className="bg-white rounded-2xl p-4 border border-zinc-200 flex items-center justify-center min-h-[420px]">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={image}
-          alt={product.name}
-          className="w-full h-auto max-h-[380px] object-contain bg-zinc-50 rounded-xl transition-transform duration-300 hover:scale-[1.6] cursor-zoom-in"
-          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/window.svg"; }}
-        />
-      </div>
+      <ProductImageZoom src={image} alt={product.name} />
       <div className="flex flex-col">
         <Link href="/" className="text-sm text-zinc-500 hover:underline">← Volver al catálogo</Link>
         <h1 className="text-[26px] font-extrabold leading-tight tracking-tight mt-3">{product.name}</h1>

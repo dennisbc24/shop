@@ -24,7 +24,7 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body { font-family: "Inter", sans-serif; color: var(--text); background: var(--white); line-height: 1.5; }
-img { display: block; width: 100%; object-fit: cover; }
+img { display: block; }
 a { color: inherit; text-decoration: none; }
 button, input { font-family: inherit; }
 button { cursor: pointer; border: none; }
@@ -82,7 +82,7 @@ button { cursor: pointer; border: none; }
 .primary-button { display: inline-flex; align-items: center; justify-content: center; width: max-content; background: var(--primary); color: white; padding: 13px 22px; border-radius: 8px; font-size: 14px; font-weight: 700; transition: .2s; }
 .primary-button:hover { background: var(--primary-dark); transform: translateY(-2px); }
 .hero-image { height: 400px; }
-.hero-image img { height: 100%; }
+.hero-image img { width: 100%; height: 100%; object-fit: cover; }
 
 /* =========================================================
    BENEFITS
