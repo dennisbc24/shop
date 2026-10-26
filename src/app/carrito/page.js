@@ -1,20 +1,21 @@
 "use client";
 import Link from "next/link";
 import { useCart } from "@/hooks/useCart";
+import { PAYMENT_METHODS_TEXT } from "@/lib/whatsapp";
 
 export default function CarritoPage() {
   const { cart, updateQty, removeFromCart, total, clearCart } = useCart();
 
   if (cart.length === 0)
     return (
-      <div className="py-12 text-center">
+      <div className="container py-12 text-center">
         <h1 className="text-xl font-bold">Tu carrito está vacío</h1>
         <Link href="/" className="mt-4 inline-block bg-black text-white px-6 py-2 rounded-full">Ir al catálogo</Link>
       </div>
     );
 
   return (
-    <div>
+    <div className="container py-8">
       <h1 className="text-2xl font-bold mb-4">Carrito ({cart.length})</h1>
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-3">
@@ -49,8 +50,8 @@ export default function CarritoPage() {
             <span>Envío</span><span className="text-green-600">Gratis</span>
           </div>
           <div className="flex justify-between font-bold text-lg border-t pt-4">Total<span>S/. {total.toFixed(2)}</span></div>
-          <Link href="/checkout" className="mt-6 block text-center bg-black text-white py-3 rounded-full hover:bg-zinc-800">Ir a pagar (dummy)</Link>
-          <p className="text-xs text-zinc-500 mt-2 text-center">Checkout dummy - no descuenta stock real</p>
+          <Link href="/checkout" className="mt-6 block text-center bg-black text-white py-3 rounded-full hover:bg-zinc-800">Continuar pedido</Link>
+          <p className="text-xs text-zinc-500 mt-2 text-center">{PAYMENT_METHODS_TEXT}</p>
         </div>
       </div>
     </div>

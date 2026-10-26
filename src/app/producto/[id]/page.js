@@ -5,6 +5,9 @@ import Link from "next/link";
 import api, { fetchExistenceByProduct, fetchProductById } from "@/lib/api";
 import { useCart } from "@/hooks/useCart";
 import ProductImageZoom from "@/components/ProductImageZoom";
+import WhatsAppIcon from "@/components/WhatsAppIcon";
+import { buildProductMessage, buildWhatsAppUrl, PAYMENT_METHODS_TEXT } from "@/lib/whatsapp";
+import { getAvailableStock } from "@/lib/stock";
 
 export default function ProductoPage() {
   const { id } = useParams();
@@ -13,6 +16,8 @@ export default function ProductoPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [qty, setQty] = useState(1);
+  const [contacting, setContacting] = useState(false);
+  const [contactError, setContactError] = useState("");
   const { addToCart, cart, removeFromCart } = useCart();
   const inCart = cart.some((p) => String(p.id_product) === String(id));
 
@@ -62,8 +67,38 @@ export default function ProductoPage() {
   const isAvailable = totalStock > 0;
   const overStock = qty > totalStock;
 
+  const handleWhatsApp = async () => {
+    setContactError("");
+    setContacting(true);
+    const pending = typeof window !== "undefined" ? window.open("", "_blank") : null;
+    if (pending) pending.opener = null;
+
+    try {
+      const available = await getAvailableStock(product.id_product);
+      if (available <= 0) {
+        pending?.close();
+        setContactError("Este producto está agotado. No podemos iniciar la consulta.");
+        return;
+      }
+      if (qty > available) {
+        pending?.close();
+        setContactError(`Solo hay ${available} unidad${available === 1 ? "" : "es"} disponible${available === 1 ? "" : "s"}.`);
+        return;
+      }
+
+      const url = buildWhatsAppUrl(buildProductMessage({ product, price, quantity: qty }));
+      if (pending) pending.location.href = url;
+      else window.location.href = url;
+    } catch {
+      pending?.close();
+      setContactError("No pudimos verificar el stock. Intenta nuevamente.");
+    } finally {
+      setContacting(false);
+    }
+  };
+
   return (
-    <div className="grid md:grid-cols-2 gap-8">
+    <div className="container py-8 grid md:grid-cols-2 gap-8">
       <ProductImageZoom src={image} alt={product.name} />
       <div className="flex flex-col">
         <Link href="/" className="text-sm text-zinc-500 hover:underline">← Volver al catálogo</Link>
@@ -114,6 +149,22 @@ export default function ProductoPage() {
           </button>
           <Link href="/carrito" className="px-6 py-3.5 rounded-xl border border-[var(--border)] text-sm font-bold bg-white hover:bg-zinc-50">Ver carrito</Link>
         </div>
+
+        <button
+          type="button"
+          onClick={handleWhatsApp}
+          disabled={contacting || !isAvailable || overStock}
+          className={`mt-4 flex w-full max-w-[280px] items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold text-white transition ${
+            contacting || !isAvailable || overStock
+              ? "cursor-not-allowed bg-zinc-300"
+              : "bg-[#25D366] hover:bg-[#1ebe5b]"
+          }`}
+        >
+          <WhatsAppIcon />
+          {contacting ? "Verificando stock..." : !isAvailable ? "Sin stock" : overStock ? "Sobrepasa stock" : "Consultar por WhatsApp"}
+        </button>
+        {contactError && <p className="mt-2 max-w-[320px] text-xs font-semibold text-red-600">{contactError}</p>}
+        <p className="mt-2 max-w-[320px] text-xs text-zinc-500">{PAYMENT_METHODS_TEXT}</p>
       </div>
     </div>
   );
