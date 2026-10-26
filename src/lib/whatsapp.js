@@ -3,7 +3,7 @@ export const WHATSAPP_NUMBER = (process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "5194
 const rawShopUrl = process.env.NEXT_PUBLIC_SHOP_URL || "https://cocinamejor.store";
 export const SHOP_URL = rawShopUrl.replace(/\/+$/, "");
 
-export const PAYMENT_METHODS_TEXT = "Aceptamos Yape, Plin y transferencia. El QR te lo compartimos por WhatsApp.";
+export const PAYMENT_METHODS_TEXT = "Aceptamos Yape, Plin y transferencia. Coordinamos el pago y el QR por WhatsApp.";
 
 export function formatPrice(value) {
   return `S/ ${Number(value || 0).toFixed(2)}`;
@@ -19,20 +19,20 @@ export function buildProductMessage({ product, price, quantity }) {
     `Cantidad: ${quantity}.`,
     `${SHOP_URL}/producto/${product.id_product}`,
     "",
-    "¿Me confirmas stock y me compartes el QR de Yape/Plin para pagar?",
+    "¿Me confirmas stock, el total con envío y cómo pagar con Yape/Plin?",
   ].join("\n");
 }
 
-export function buildOrderMessage({ cart, total, customer }) {
+export function buildQuoteMessage({ cart, total, customer }) {
   const lines = [
-    "Hola, quiero coordinar este pedido:",
+    "Hola, quiero solicitar una cotización:",
     "",
     ...cart.map((product) => {
       const unitPrice = Number(product.list_price || product.cost || 0);
       return `• ${product.quantity}x ${product.name} — ${formatPrice(unitPrice * product.quantity)}`;
     }),
     "",
-    `Total: ${formatPrice(total)}`,
+    `Total referencial (sin envío): ${formatPrice(total)}`,
     "",
     `Nombre: ${customer.name}`,
     `Teléfono: ${customer.phone}`,
@@ -42,7 +42,7 @@ export function buildOrderMessage({ cart, total, customer }) {
   if (customer.reference?.trim()) lines.push(`Referencia: ${customer.reference.trim()}`);
   if (customer.notes?.trim()) lines.push(`Notas: ${customer.notes.trim()}`);
 
-  lines.push("", "Pago: Yape, Plin o transferencia. ¿Me compartes el QR para pagar?");
+  lines.push("", "¿Me confirmas stock, envío y total final? El pago sería por Yape, Plin o transferencia.");
 
   return lines.join("\n");
 }

@@ -47,10 +47,10 @@ export default function CarritoPage() {
             <span>Subtotal</span><span>S/. {total.toFixed(2)}</span>
           </div>
           <div className="flex justify-between text-sm mb-4">
-            <span>Envío</span><span className="text-green-600">Gratis</span>
+            <span>Envío</span><span className="text-zinc-500">Se cotiza por WhatsApp</span>
           </div>
-          <div className="flex justify-between font-bold text-lg border-t pt-4">Total<span>S/. {total.toFixed(2)}</span></div>
-          <Link href="/checkout" className="mt-6 block text-center bg-black text-white py-3 rounded-full hover:bg-zinc-800">Continuar pedido</Link>
+          <div className="flex justify-between font-bold text-lg border-t pt-4">Total referencial<span>S/. {total.toFixed(2)}</span></div>
+          <Link href="/checkout" className="mt-6 block text-center bg-black text-white py-3 rounded-full hover:bg-zinc-800">Solicitar cotización</Link>
           <p className="text-xs text-zinc-500 mt-2 text-center">{PAYMENT_METHODS_TEXT}</p>
         </div>
       </div>

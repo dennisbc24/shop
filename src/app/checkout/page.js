@@ -2,7 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useCart } from "@/hooks/useCart";
-import { buildOrderMessage, buildWhatsAppUrl, formatPrice, PAYMENT_METHODS_TEXT } from "@/lib/whatsapp";
+import { buildQuoteMessage, buildWhatsAppUrl, formatPrice, PAYMENT_METHODS_TEXT } from "@/lib/whatsapp";
 import { verifyCartStock } from "@/lib/stock";
 import WhatsAppIcon from "@/components/WhatsAppIcon";
 
@@ -37,11 +37,11 @@ export default function CheckoutPage() {
         const detail = missing
           .map(({ product, available }) => `${product.name} (disponible: ${available})`)
           .join(", ");
-        setError(`No hay stock suficiente para: ${detail}. Ajusta tu carrito antes de continuar.`);
+        setError(`No hay stock suficiente para: ${detail}. Ajusta tu carrito antes de solicitar la cotización.`);
         return;
       }
 
-      const url = buildWhatsAppUrl(buildOrderMessage({ cart, total, customer: form }));
+      const url = buildWhatsAppUrl(buildQuoteMessage({ cart, total, customer: form }));
       if (pending) pending.location.href = url;
       else window.location.href = url;
       setSent(true);
@@ -64,9 +64,9 @@ export default function CheckoutPage() {
   return (
     <div className="max-w-xl mx-auto py-8">
       <Link href="/carrito" className="text-sm text-zinc-500 hover:underline">← Volver al carrito</Link>
-      <h1 className="text-2xl font-bold mb-2 mt-3">Confirmar pedido</h1>
+      <h1 className="text-2xl font-bold mb-2 mt-3">Solicitar cotización</h1>
       <p className="text-sm text-zinc-600 mb-6">
-        Revisamos el stock y te llevamos a WhatsApp para coordinar el pago y la entrega.
+        Completa tus datos y revisamos el stock. Te enviamos a WhatsApp para cotizar el envío y coordinar el pago.
       </p>
 
       <form onSubmit={handleSubmit} className="bg-white border border-[var(--border)] rounded-2xl p-6 space-y-4">
@@ -136,8 +136,12 @@ export default function CheckoutPage() {
               </div>
             );
           })}
+          <div className="flex justify-between text-sm text-zinc-500">
+            <span>Envío</span>
+            <span>Se cotiza por WhatsApp</span>
+          </div>
           <div className="flex justify-between font-bold text-base pt-2 border-t">
-            Total <span>{formatPrice(total)}</span>
+            Total referencial <span>{formatPrice(total)}</span>
           </div>
         </div>
 
@@ -153,14 +157,14 @@ export default function CheckoutPage() {
           className="flex w-full items-center justify-center gap-2 rounded-full bg-[#25D366] py-3 font-bold text-white transition hover:bg-[#1ebe5b] disabled:cursor-not-allowed disabled:opacity-60"
         >
           <WhatsAppIcon />
-          {submitting ? "Verificando stock..." : "Enviar pedido por WhatsApp"}
+          {submitting ? "Verificando stock..." : "Enviar cotización por WhatsApp"}
         </button>
         <p className="text-xs text-zinc-500 text-center">
-          Tu pedido se confirma cuando verifiquemos el pago por WhatsApp. No vaciamos tu carrito automáticamente.
+          La cotización se confirma por WhatsApp. El total mostrado no incluye envío y está sujeto a stock. No vaciamos tu carrito automáticamente.
         </p>
         {sent && (
           <p className="text-xs font-semibold text-green-700 text-center">
-            Se abrió WhatsApp. Envía el mensaje para coordinar el pago y la entrega.
+            Se abrió WhatsApp. Envía el mensaje para recibir tu cotización.
           </p>
         )}
       </form>
