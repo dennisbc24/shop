@@ -10,7 +10,9 @@ export function CartProvider({ children }) {
 
   useEffect(() => {
     try {
+      // localStorage solo existe en el cliente: se hidrata tras el montaje para evitar mismatch
       const saved = localStorage.getItem(STORAGE_KEY);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (saved) setCart(JSON.parse(saved));
     } catch {}
   }, []);

@@ -2,12 +2,14 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useCart } from "@/hooks/useCart";
+import { useSearch } from "@/context/SearchContext";
 
 export default function Header() {
   const { count, total } = useCart();
+  const { setSearch } = useSearch();
   const [input, setInput] = useState("");
   const doSearch = () => {
-    if (typeof window !== "undefined" && window.__shopSetSearch) window.__shopSetSearch(input);
+    setSearch(input);
     // scroll a resultados más arriba y visible
     setTimeout(() => document.getElementById("catalogo")?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
   };

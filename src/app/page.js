@@ -1,5 +1,3 @@
-"use client";
-import { useState } from "react";
 import Catalog from "@/components/Catalog";
 import Hero from "@/components/layout/Hero";
 import Benefits from "@/components/layout/Benefits";
@@ -11,12 +9,6 @@ const banners = [
 ];
 
 export default function Home() {
-  const [search, setSearch] = useState("");
-  // Header onSearch se maneja via prop global - usamos estado local y pasamos a Catalog via key
-  // Para simplicidad, exponemos setSearch al Header vía evento custom
-  if (typeof window !== "undefined") {
-    window.__shopSetSearch = setSearch;
-  }
   return (
     <>
       <Hero />
@@ -54,7 +46,7 @@ export default function Home() {
             <h2>Productos destacados</h2>
             <a href="#catalogo">Ver todos →</a>
           </div>
-          <Catalog externalSearch={search} />
+          <Catalog />
         </div>
       </section>
 
