@@ -16,9 +16,13 @@ module.exports = {
     {
       name: "shop",
       cwd: "./",
-      script: "node_modules/next/dist/bin/next",
-      args: "start -p 3001",
-      env: { NODE_ENV: "production", PORT: 3001, NEXT_PUBLIC_API_URL: "https://inventario.cocinamejor.store/api/v1/public" },
+      script: ".next/standalone/server.js",
+      env: {
+        NODE_ENV: "production",
+        PORT: 3001,
+        HOSTNAME: "127.0.0.1",
+        NEXT_PUBLIC_API_URL: "https://inventario.cocinamejor.store/api/v1/public",
+      },
     },
   ],
 };

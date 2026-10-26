@@ -5,11 +5,56 @@ on:
     branches: [main]
   workflow_dispatch:
 
+concurrency:
+  group: deploy-shop
+  cancel-in-progress: true
+
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy via SSH (git pull)
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Build (en el runner, NO en la EC2)
+        run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL || 'https://inventario.cocinamejor.store/api/v1/public' }}
+          NEXT_PUBLIC_SHOP_URL: ${{ vars.NEXT_PUBLIC_SHOP_URL || 'https://cocinamejor.store' }}
+
+      - name: Package standalone release
+        run: |
+          set -euo pipefail
+          rm -rf release release.tar.gz
+          mkdir -p release
+          cp -a .next/standalone/. release/
+          mkdir -p release/.next
+          cp -a .next/static release/.next/static
+          cp -a public release/public
+          tar -czf release.tar.gz -C release .
+          du -sh release.tar.gz
+
+      - name: Upload release to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: ${{ secrets.EC2_SSH_PORT || 22 }}
+          source: release.tar.gz
+          target: /tmp
+
+      - name: Activate release (sin build en la EC2)
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -18,59 +63,16 @@ jobs:
           port: ${{ secrets.EC2_SSH_PORT || 22 }}
           script: |
             set -e
-            echo "==> Detectar carpeta shop (soporta ~/shop y ~/proyects/shop)"
-            echo "HOME=$HOME USER=$(whoami) PWD=$(pwd)"
-            ls -ld "$HOME/shop" "$HOME/proyects/shop" 2>&1 || true
             APP_DIR="$HOME/proyects/shop"
-            # fallback si lo moviste a ~/shop
             if [ ! -d "$APP_DIR/.git" ] && [ -d "$HOME/shop/.git" ]; then APP_DIR="$HOME/shop"; fi
-            # Si usas secret APP_DIR, descomenta:
-            # APP_DIR="${{ secrets.APP_DIR }}"
             if [ ! -d "$APP_DIR/.git" ]; then
-              echo "ERROR: no se encontró git en $APP_DIR ni $HOME/proyects/shop"
-              echo "Haz: git clone https://github.com/dennisbc24/shop.git \$HOME/shop"
-              echo "O ajusta APP_DIR en deploy.yml a tu ruta real"
-              ls -la "$HOME" 2>&1 | head -20
+              echo "ERROR: no se encontro git en $HOME/proyects/shop ni $HOME/shop"
               exit 1
             fi
-            echo "Usando APP_DIR=$APP_DIR"
+            echo "==> APP_DIR=$APP_DIR"
             cd "$APP_DIR"
-            echo "==> Forzar remote HTTPS (evita Permission denied publickey)"
             git remote set-url origin https://github.com/dennisbc24/shop.git
-            # Si repo es privado, usa PAT: descomenta siguiente linea y añade secret GH_PAT
-            # git remote set-url origin https://${{ secrets.GH_PAT }}@github.com/dennisbc24/shop.git
-            echo "==> Git pull"
             git fetch origin main
             git reset --hard origin/main
-            echo "==> .env"
-            if [ ! -f .env.local ]; then
-              cat > .env.local <<EOF
-            NEXT_PUBLIC_API_URL=https://inventario.cocinamejor.store/api/v1/public
-            EOF
-            fi
-            echo "==> Node/NPM/PM2 (carga nvm si existe)"
-            export NVM_DIR="$HOME/.nvm"
-            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            export PATH="$HOME/.local/share/fnm:$HOME/.fnm:$HOME/.volta/bin:/usr/local/bin:/usr/bin:$PATH"
-            which node || true; node -v
-            # eslint 9 exige >=18.18 o 20.9 - tu EC2 tiene 18.12.1 -> auto upgrade a 20 LTS
-            if node -v | grep -q "v18.12"; then
-              echo "Node 18.12 obsoleto - instalando 20 LTS..."
-              nvm install 20
-              nvm alias default 20
-              nvm use 20
-            fi
-            node -v; which npm || true; npm -v; which pm2 || true; pm2 -v || npm i -g pm2
-            echo "==> Install & Build (t3.nano 512MB -> swap + low mem)"
-            export NODE_OPTIONS="--max-old-space-size=384"
-            npm ci --no-audit --no-fund
-            npm run build
-            echo "==> PM2"
-            if pm2 list | grep -q "shop"; then
-              pm2 reload ecosystem.config.js --only shop --update-env
-            else
-              pm2 start ecosystem.config.js --only shop
-            fi
-            pm2 save
-            pm2 ls
-            echo "==> Deploy OK - $(date) - $(git rev-parse --short HEAD)"
+            bash deploy/activate-release.sh /tmp/release.tar.gz "$APP_DIR"
+            rm -f /tmp/release.tar.gz
