@@ -1,10 +1,42 @@
 "use client";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useCart } from "@/hooks/useCart";
+import { getAvailableStock } from "@/lib/stock";
 import { PAYMENT_METHODS_TEXT } from "@/lib/whatsapp";
 
 export default function CarritoPage() {
   const { cart, updateQty, removeFromCart, total, clearCart } = useCart();
+  const [stockMap, setStockMap] = useState({});
+
+  const idsKey = cart.map((p) => p.id_product).join(",");
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadStock() {
+      const entries = await Promise.all(
+        cart.map(async (p) => {
+          try {
+            return [p.id_product, await getAvailableStock(p.id_product)];
+          } catch {
+            return [p.id_product, null];
+          }
+        })
+      );
+      if (!cancelled) setStockMap(Object.fromEntries(entries));
+    }
+    if (cart.length) loadStock();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idsKey]);
+
+  const increaseQty = (product) => {
+    const available = stockMap[product.id_product];
+    if (available != null && product.quantity >= available) return;
+    updateQty(product.id_product, product.quantity + 1);
+  };
 
   if (cart.length === 0)
     return (
@@ -21,6 +53,8 @@ export default function CarritoPage() {
         <div className="lg:col-span-2 space-y-3">
           {cart.map((p) => {
             const price = Number(p.list_price || p.cost || 0);
+            const available = stockMap[p.id_product];
+            const atMax = available != null && p.quantity >= available;
             return (
               <div key={p.id_product} className="flex gap-4 bg-white border rounded-2xl p-4 items-center">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -31,8 +65,9 @@ export default function CarritoPage() {
                   <div className="flex items-center gap-2 mt-2">
                     <button onClick={() => updateQty(p.id_product, p.quantity - 1)} className="w-8 h-8 rounded-full border">-</button>
                     <span className="w-8 text-center text-sm">{p.quantity}</span>
-                    <button onClick={() => updateQty(p.id_product, p.quantity + 1)} className="w-8 h-8 rounded-full border">+</button>
+                    <button onClick={() => increaseQty(p)} disabled={atMax} className="w-8 h-8 rounded-full border disabled:opacity-40 disabled:cursor-not-allowed">+</button>
                     <button onClick={() => removeFromCart(p)} className="ml-4 text-xs text-red-600 hover:underline">Quitar</button>
+                    {atMax && <span className="text-xs text-zinc-500">Máx. disponible: {available}</span>}
                   </div>
                 </div>
                 <div className="font-bold">S/. {(price * p.quantity).toFixed(2)}</div>
