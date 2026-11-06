@@ -1,13 +1,37 @@
 import Catalog from "@/components/Catalog";
 import Hero from "@/components/layout/Hero";
 import Benefits from "@/components/layout/Benefits";
+import { getCatalogProducts, getCategories } from "@/lib/server-api";
+
+export const revalidate = 300;
+
+export const metadata = {
+  title: "CocinaMejor Store | Electrodomésticos y artículos de cocina",
+  description:
+    "Descubre electrodomésticos, menaje, repostería y artículos de cocina con envío a todo el Perú. Compra fácil por WhatsApp con stock actualizado.",
+  alternates: { canonical: "/" },
+  openGraph: {
+    url: "/",
+    title: "CocinaMejor Store | Electrodomésticos y artículos de cocina",
+    description:
+      "Descubre electrodomésticos, menaje, repostería y artículos de cocina con envío a todo el Perú. Compra fácil por WhatsApp con stock actualizado.",
+  },
+};
 
 const banners = [
   { cls: "light-banner", eyebrow: "NUEVOS PRODUCTOS", title: "Descubre lo último para tu cocina", link: "Ver novedades", icon: "🍲" },
   { cls: "dark-banner", eyebrow: "PAGOS SEGUROS", title: "Tu compra está 100% protegida", link: "", icon: "🔒" },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const [productsResult, categoriesResult] = await Promise.allSettled([
+    getCatalogProducts({ limit: 100 }),
+    getCategories(),
+  ]);
+
+  const initialProducts = productsResult.status === "fulfilled" ? productsResult.value : undefined;
+  const initialCategories = categoriesResult.status === "fulfilled" ? categoriesResult.value : undefined;
+
   return (
     <>
       <Hero />
@@ -45,7 +69,7 @@ export default function Home() {
             <h2>Productos destacados</h2>
             <a href="#catalogo">Ver todos →</a>
           </div>
-          <Catalog />
+          <Catalog initialProducts={initialProducts} initialCategories={initialCategories} />
         </div>
       </section>
 

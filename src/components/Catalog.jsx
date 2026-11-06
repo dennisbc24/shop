@@ -1,22 +1,25 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import api, { fetchInStock, fetchCategories } from "@/lib/api";
 import { useSearch } from "@/context/SearchContext";
 import ProductCard from "./ProductCard";
 
 const PAGE_SIZE = 10;
 
-export default function Catalog() {
+export default function Catalog({ initialProducts, initialCategories }) {
   const { search: externalSearch } = useSearch();
-  const [products, setProducts] = useState([]);
+  const hasInitialProducts = Array.isArray(initialProducts);
+  const hasInitialCategories = Array.isArray(initialCategories);
+  const [products, setProducts] = useState(hasInitialProducts ? initialProducts : []);
   const [stockMap, setStockMap] = useState({});
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!hasInitialProducts);
   const [error, setError] = useState(null);
   const [query, setQuery] = useState(externalSearch);
   const [selectedCat, setSelectedCat] = useState("");
-  const [categories, setCategories] = useState([]);
+  const [categories, setCategories] = useState(hasInitialCategories ? initialCategories : []);
   const [page, setPage] = useState(1);
   const [prevExternalSearch, setPrevExternalSearch] = useState(externalSearch);
+  const skipInitialLoad = useRef(hasInitialProducts);
 
   // Ajuste de estado derivado durante el render (patrón recomendado por React)
   if (externalSearch !== prevExternalSearch) {
@@ -35,10 +38,15 @@ export default function Catalog() {
   }, [externalSearch]);
 
   useEffect(() => {
+    if (hasInitialCategories) return;
     fetchCategories({ withCounts: true, online: true }).then(setCategories).catch(() => {});
-  }, []);
+  }, [hasInitialCategories]);
 
   useEffect(() => {
+    if (skipInitialLoad.current) {
+      skipInitialLoad.current = false;
+      return;
+    }
     let cancelled = false;
     async function load() {
       try {

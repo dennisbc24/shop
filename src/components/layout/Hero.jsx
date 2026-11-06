@@ -10,7 +10,14 @@ export default function Hero() {
         </div>
         <div className="hero-image">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="https://images.unsplash.com/photo-1585515320310-259814833e62?auto=format&fit=crop&w=1000&q=80" alt="Electrodomésticos para cocina" />
+          <img
+            src="https://images.unsplash.com/photo-1585515320310-259814833e62?auto=format&fit=crop&w=1000&q=80"
+            alt="Electrodomésticos para cocina"
+            width="1000"
+            height="400"
+            loading="eager"
+            fetchPriority="high"
+          />
         </div>
       </div>
     </section>

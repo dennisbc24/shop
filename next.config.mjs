@@ -2,6 +2,7 @@
 const nextConfig = {
   output: "standalone",
   images: {
+    unoptimized: true,
     remotePatterns: [
       { protocol: "https", hostname: "**.amazonaws.com" },
       { protocol: "https", hostname: "caja-for-many-products-dennis.s3.sa-east-1.amazonaws.com" },

@@ -82,6 +82,8 @@ export default function ProductImageZoom({ src, alt }) {
         src={src}
         alt={alt}
         draggable={false}
+        loading="eager"
+        fetchPriority="high"
         className="max-w-full max-h-[380px] w-auto h-auto object-contain bg-zinc-50 rounded-xl transition-transform duration-200 ease-out select-none"
         style={{
           transform: `scale(${zoomed ? MAX_SCALE : 1})`,

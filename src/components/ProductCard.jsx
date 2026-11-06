@@ -14,7 +14,8 @@ export default function ProductCard({ product, stock }) {
   const discountPct = hasDiscount ? Math.round(((referencePrice - price) / referencePrice) * 100) : null;
   const isNew = !hasDiscount && product.created && NOW - new Date(product.created).getTime() < NEW_WINDOW_MS;
   const image = product.url_image || product.img || "/window.svg";
-  const isOutOfStock = stock !== undefined && Number(stock) <= 0;
+  const stockKnown = stock !== undefined && stock !== null;
+  const isOutOfStock = stockKnown && Number(stock) <= 0;
 
   return (
     <article className="product-card">
@@ -35,7 +36,7 @@ export default function ProductCard({ product, stock }) {
           <strong>S/ {price.toFixed(2)}</strong>
           {hasDiscount && <del>S/ {referencePrice.toFixed(2)}</del>}
         </div>
-        <span className="stock">{isOutOfStock ? "● Agotado" : "● En stock"}</span>
+        <span className="stock">{!stockKnown ? "● Consultar disponibilidad" : isOutOfStock ? "● Agotado" : "● En stock"}</span>
         <button className="add-cart" disabled={isOutOfStock} onClick={() => (inCart ? removeFromCart(product) : addToCart(product))}>
           {isOutOfStock ? "Agotado" : inCart ? "Quitar 🛒" : "Agregar al carrito 🛒"}
         </button>

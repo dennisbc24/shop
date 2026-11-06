@@ -22,6 +22,8 @@ module.exports = {
         PORT: 3001,
         HOSTNAME: "127.0.0.1",
         NEXT_PUBLIC_API_URL: "https://inventario.cocinamejor.store/api/v1/public",
+        API_URL_SERVER: "http://127.0.0.1:3000/api/v1/public",
+        CONTENT_REVALIDATE: "300",
       },
     },
   ],
